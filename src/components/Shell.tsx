@@ -32,7 +32,7 @@ function TopNav() {
     const measure = measureRef.current
     if (!wrap || !measure) return
     const calc = () => {
-      const avail = wrap.clientWidth
+      const avail = wrap.clientWidth - 8
       const nodes = Array.from(measure.children) as HTMLElement[]
       const more = nodes[nodes.length - 1]
       const widths = nodes.slice(0, -1).map((n) => n.offsetWidth + 4)
@@ -80,17 +80,17 @@ function TopNav() {
   return (
     <div className="relative flex min-w-0 flex-1 items-center">
       {/* fila invisible para medir anchos */}
-      <div ref={measureRef} aria-hidden className="pointer-events-none invisible absolute left-0 top-0 flex gap-1">
+      <div ref={measureRef} aria-hidden className="pointer-events-none invisible absolute left-0 top-0 flex w-max gap-1">
         {items.map((it) => (
-          <div key={it.id} className={cn('flex', it.commercial && 'pr-3')}>
+          <div key={it.id} className={cn('flex shrink-0', it.commercial && 'pr-[18px]')}>
             {pill(it, true)}
           </div>
         ))}
-        <div className="flex h-9 items-center gap-1 px-2.5 text-[13px] font-medium">
+        <div className="flex h-9 shrink-0 items-center gap-1 px-2.5 text-[13px] font-medium">
           <MoreHorizontal size={16} /> {t('act.more')} <ChevronDown size={13} />
         </div>
       </div>
-      <nav ref={wrapRef} data-tour="top-nav" className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+      <nav ref={wrapRef} data-tour="top-nav" className="flex min-w-0 flex-1 items-center gap-1">
         {shown.map((it) =>
           it.commercial ? (
             <div key={it.id} className="flex shrink-0 items-center pr-2">

@@ -267,7 +267,7 @@ export function Tabs<T extends string>({
   className?: string
 }) {
   return (
-    <div className={cn('no-scrollbar flex gap-1 overflow-x-auto rounded-xl border border-line bg-surface2 p-1', className)}>
+    <div className={cn('no-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-xl border border-line bg-surface2 p-1', className)}>
       {items.map((it) => (
         <button
           key={it.value}

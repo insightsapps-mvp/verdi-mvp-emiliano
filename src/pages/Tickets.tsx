@@ -64,7 +64,7 @@ export default function Tickets() {
       <DevNotice {...(modo === 'local' ? DEV.print : DEV.pdf)} />
 
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <div className="grid gap-3 sm:grid-cols-2">
             {impresoras.map((p) => (
               <Card key={p.id} className={cn('flex items-center gap-3 p-4', p.estado === 'sin_papel' && 'border-warning/50')}>

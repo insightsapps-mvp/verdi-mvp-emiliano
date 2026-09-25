@@ -300,3 +300,12 @@ html.in-frame::-webkit-scrollbar,
 html.in-frame body::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes trailer-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}

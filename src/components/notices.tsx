@@ -18,8 +18,8 @@ export function PreviewBanner({ id, bullets, android = true }: { id: string; bul
           <Eye size={11} /> {t('pb.nav')}
         </span>
         <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-bold tracking-wider text-muted">{t('pb.mock')}</span>
-        <span className="ml-1 min-w-0 flex-1 truncate text-[13px] font-semibold">{collapsed ? t('pb.show') : t('pb.title')}</span>
-        <span className="flex items-center gap-1 text-[12px] text-muted">
+        <span className="order-last min-w-0 basis-full truncate text-[13px] font-semibold sm:order-none sm:ml-1 sm:basis-auto sm:flex-1">{collapsed ? t('pb.show') : t('pb.title')}</span>
+        <span className="ml-auto flex items-center gap-1 text-[12px] text-muted sm:ml-0">
           {collapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
           <span className="hidden sm:inline">{collapsed ? L('Mostrar', 'Show') : t('pb.hide')}</span>
         </span>

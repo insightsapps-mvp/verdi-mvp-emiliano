@@ -142,6 +142,7 @@ export const useApp = create<AppState>((set, get) => ({
 
 // Si viene por query (iframe), persistir tema/idioma para que el anti-flash coincida
 if (isFrame) {
+  document.documentElement.classList.add('in-frame')
   const qt = q.get('theme')
   if (qt === 'dark' || qt === 'light') applyThemeClass(qt)
 }

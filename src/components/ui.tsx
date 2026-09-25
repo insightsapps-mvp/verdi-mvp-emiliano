@@ -317,8 +317,8 @@ export function Kpi({
           </span>
         )}
       </div>
-      <div className="num mt-2 text-[26px] font-semibold leading-none tracking-tight">{value}</div>
-      <div className="mt-2 flex items-center gap-2 text-[12px] text-muted">
+      <div className="num mt-2 whitespace-nowrap text-[19px] font-semibold leading-none tracking-tight sm:text-[26px]">{value}</div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted">
         {delta !== undefined && (
           <span className={cn('num inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-semibold', delta >= 0 ? 'bg-primary-soft text-primary' : 'bg-danger-soft text-danger')}>
             {delta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}

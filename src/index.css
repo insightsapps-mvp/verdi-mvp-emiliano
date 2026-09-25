@@ -290,3 +290,13 @@ body {
     break-inside: avoid;
   }
 }
+
+/* Dentro del marco de celular: sin scrollbar visible, como en un teléfono */
+html.in-frame,
+html.in-frame body {
+  scrollbar-width: none;
+}
+html.in-frame::-webkit-scrollbar,
+html.in-frame body::-webkit-scrollbar {
+  display: none;
+}

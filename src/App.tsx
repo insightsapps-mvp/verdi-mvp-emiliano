@@ -21,6 +21,7 @@ import Entregas from '@/pages/Entregas'
 import Tickets from '@/pages/Tickets'
 import Conversaciones from '@/pages/Conversaciones'
 import Cuenta from '@/pages/Cuenta'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const authed = useApp((s) => s.authed)
@@ -99,8 +100,10 @@ function Root() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Root />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Root />
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

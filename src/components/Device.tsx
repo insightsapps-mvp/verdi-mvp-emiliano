@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { BatteryFull, Maximize2, Signal, Wifi } from 'lucide-react'
+import { BatteryFull, Loader2, Maximize2, RotateCcw, Signal, Wifi } from 'lucide-react'
 import { useApp } from '@/lib/store'
 import { useL } from '@/lib/i18n'
 import { Button } from './ui'
@@ -10,6 +10,7 @@ type Msg =
   | { source: 'verdi'; type: 'state'; payload: { theme?: 'light' | 'dark'; lang?: 'es' | 'en'; role?: 'admin' | 'verduleria'; authed?: boolean } }
   | { source: 'verdi'; type: 'nav'; path: string }
   | { source: 'verdi'; type: 'startTrailer' }
+  | { source: 'verdi'; type: 'ready' }
 
 const isMsg = (d: unknown): d is Msg => !!d && typeof d === 'object' && (d as { source?: string }).source === 'verdi'
 
@@ -24,6 +25,19 @@ export function useWide() {
   return wide
 }
 
+/** Mientras se aplica un estado recibido no se re-emite (evita el ping-pong padre ↔ iframe) */
+let applyingRemote = false
+const applyRemote = (payload: Parameters<ReturnType<typeof useApp.getState>['applyRemote']>[0]) => {
+  applyingRemote = true
+  try {
+    useApp.getState().applyRemote(payload)
+  } finally {
+    applyingRemote = false
+  }
+}
+const changed = (s: ReturnType<typeof useApp.getState>, prev: ReturnType<typeof useApp.getState>) =>
+  !applyingRemote && (s.theme !== prev.theme || s.lang !== prev.lang || s.role !== prev.role || s.authed !== prev.authed)
+
 const snapshot = () => {
   const s = useApp.getState()
   return { theme: s.theme, lang: s.lang, role: s.role, authed: s.authed }
@@ -36,12 +50,13 @@ export function FrameBridge() {
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
       if (e.origin !== location.origin || !isMsg(e.data)) return
-      if (e.data.type === 'state') useApp.getState().applyRemote(e.data.payload)
+      if (e.data.type === 'state') applyRemote(e.data.payload)
       if (e.data.type === 'nav' && e.data.path !== location.pathname) navigate(e.data.path)
     }
     window.addEventListener('message', onMsg)
+    window.parent.postMessage({ source: 'verdi', type: 'ready' }, location.origin)
     const unsub = useApp.subscribe((s, prev) => {
-      if (s.theme !== prev.theme || s.lang !== prev.lang || s.role !== prev.role || s.authed !== prev.authed) {
+      if (changed(s, prev)) {
         window.parent.postMessage({ source: 'verdi', type: 'state', payload: snapshot() }, location.origin)
       }
     })
@@ -64,6 +79,9 @@ export function DeviceStage() {
   const theme = useApp((s) => s.theme)
   const setDevice = useApp((s) => s.setDevice)
   const frameRef = useRef<HTMLIFrameElement>(null)
+  const [ready, setReady] = useState(false)
+  const [slow, setSlow] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [src] = useState(() => {
     const s = useApp.getState()
     const path = s.authed ? (pathname === '/login' || pathname === '/' ? '/propuesta' : pathname) : '/login'
@@ -73,8 +91,12 @@ export function DeviceStage() {
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
       if (e.origin !== location.origin || !isMsg(e.data)) return
-      if (e.data.type === 'state') useApp.getState().applyRemote(e.data.payload)
+      if (e.data.type === 'state') applyRemote(e.data.payload)
       if (e.data.type === 'nav') navigate(e.data.path, { replace: true })
+      if (e.data.type === 'ready') {
+        setReady(true)
+        setSlow(false)
+      }
       if (e.data.type === 'startTrailer') {
         useApp.getState().setDevice('desktop')
         useApp.getState().setTrailer(true)
@@ -82,7 +104,7 @@ export function DeviceStage() {
     }
     window.addEventListener('message', onMsg)
     const unsub = useApp.subscribe((s, prev) => {
-      if (s.theme !== prev.theme || s.lang !== prev.lang || s.role !== prev.role || s.authed !== prev.authed) {
+      if (changed(s, prev)) {
         frameRef.current?.contentWindow?.postMessage({ source: 'verdi', type: 'state', payload: snapshot() }, location.origin)
       }
     })
@@ -93,6 +115,21 @@ export function DeviceStage() {
   }, [navigate])
 
   const onLoad = () => frameRef.current?.contentWindow?.postMessage({ source: 'verdi', type: 'state', payload: snapshot() }, location.origin)
+
+  // Si el iframe no avisa que está listo, se reintenta una vez solo y después se ofrece reintentar a mano
+  useEffect(() => {
+    if (ready) return
+    const t = setTimeout(() => {
+      if (attempt === 0) setAttempt(1)
+      else setSlow(true)
+    }, 9000)
+    return () => clearTimeout(t)
+  }, [ready, attempt])
+  const retry = () => {
+    setReady(false)
+    setSlow(false)
+    setAttempt((a) => a + 1)
+  }
 
   const dark = theme === 'dark'
   return (
@@ -130,7 +167,26 @@ export function DeviceStage() {
                 <BatteryFull size={20} strokeWidth={1.8} />
               </span>
             </div>
-            <iframe ref={frameRef} src={src} onLoad={onLoad} title="Verdi · iPhone" className="block w-full flex-1 border-0" style={{ width: 390 }} />
+            <div className="relative flex-1">
+              <iframe key={attempt} ref={frameRef} src={src} onLoad={onLoad} title="Verdi · iPhone" className="absolute inset-0 block h-full border-0" style={{ width: 390 }} />
+              {!ready && (
+                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 ${dark ? 'bg-[#09090b] text-zinc-400' : 'bg-white text-zinc-500'}`}>
+                  {slow ? (
+                    <>
+                      <p className="px-8 text-center text-[13px]">{L('La vista celular está tardando en cargar.', 'The mobile view is taking a while to load.')}</p>
+                      <Button size="sm" variant="secondary" onClick={retry}>
+                        <RotateCcw size={14} /> {L('Reintentar', 'Retry')}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 size={22} className="animate-spin text-primary" />
+                      <p className="text-[12.5px]">{L('Cargando la app…', 'Loading the app…')}</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
             {/* Barra de gestos */}
             <div className="flex h-[22px] shrink-0 items-center justify-center">
               <span className={`h-[5px] w-[134px] rounded-full ${dark ? 'bg-white/80' : 'bg-zinc-900/85'}`} />

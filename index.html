@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#16a34a" />
+    <title>Verdi · Demo Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Anti-flash: aplica tema antes de que monte React
+      ;(function () {
+        try {
+          var q = new URLSearchParams(location.search)
+          var t = q.get('theme') || localStorage.getItem('verdi_theme') || 'light'
+          var l = q.get('lang') || localStorage.getItem('verdi_lang') || 'es'
+          var d = document.documentElement
+          if (t === 'dark') d.classList.add('dark')
+          d.style.background = t === 'dark' ? '#09090b' : '#ffffff'
+          d.lang = l
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
